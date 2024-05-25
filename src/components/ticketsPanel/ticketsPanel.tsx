@@ -1,7 +1,7 @@
-import React from "react";
+import React, { MouseEventHandler } from "react";
 import { Client } from "../../types";
 import { Header } from "../header/header";
-import { Table, TextInput, Select, Button, Link, withTableActions, withTableSorting, TableDataItem, TableActionConfig, ThemeProvider, Modal } from "@gravity-ui/uikit";
+import { Table, TextInput, Select, Button, Link, withTableActions, withTableSorting, TableDataItem, TableActionConfig, ThemeProvider, Modal, SelectOption, SelectOptionGroup } from "@gravity-ui/uikit";
 import { DateField } from '@gravity-ui/date-components';
 import { dateTimeParse } from '@gravity-ui/date-utils';
 import '@gravity-ui/uikit/styles/fonts.css';
@@ -48,7 +48,7 @@ export const TicketsPanel = () => {
         setDateTicket(dateTimeParse ('') || null);
     }
 
-    function updateItem(item: TableDataItem, e: { preventDefault: () => void; }) {
+    const updateItem = (e: { preventDefault: () => void; }) => {
         const updatedItem = {
             id: itemID,
             numberTicket,
@@ -73,7 +73,7 @@ export const TicketsPanel = () => {
         setClientsList(clientsList.map((client) => itemID === client.id ? updatedItem : client));
     }
 
-    const getRowActions = (item: TableDataItem): TableActionConfig<TableDataItem>[] => {
+    const getRowActions = (): TableActionConfig<TableDataItem>[] => {
         return [
           {
             text: 'Удалить',
@@ -101,6 +101,28 @@ export const TicketsPanel = () => {
         ];
     };
 
+    const selectOptions = [
+        {value: 'Новая', content: 'Новая'},
+        {value: 'В работе', content: 'В работе'},
+        {value: 'Завершенна', content: 'Завершенна'},    
+    ]
+
+    const formClient = (cliclFunc: MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>, nameButton: string, options: (SelectOption<any> | SelectOptionGroup<any>)[], selectActive: boolean) => {
+        return (
+            <form action="" style={{display: "flex"}}>
+                    <TextInput style={{width: '200px'}} value={numberTicket}  id="numberTicket" type="number" placeholder="Номер заявки" onChange={(e) => setNumberTicket(e.target.value)} />
+                    <DateField style={{width: '200px'}} value={dateTicket} id="dateTicket" placeholder="Дата и время получения заявки от клиента" format='DD.MM.YYYY HH:m' timeZone="Asia/Yekaterinburg" onUpdate={(e) => setDateTicket(e)} />
+                    <TextInput style={{width: '200px'}} value={nameOrg}  id="nameOrg" type="text" placeholder="Название фирмы клиента" onChange={(e) => setNameOrg(e.target.value)} />
+                    <TextInput style={{width: '200px'}} value={nameClient}  id="nameClient" type="text" placeholder="ФИО перевозчика" onChange={(e) => setNameClient(e.target.value)} />
+                    <TextInput style={{width: '200px'}} value={telephone}  id="telephone" type="tel" placeholder="Контактный телефон перевозчика" onChange={(e) => setTelephone(e.target.value)} />
+                    <TextInput style={{width: '200px'}} value={comment}  id="comment" type="text" placeholder="Комментарии" onChange={(e) => setComment(e.target.value)} />
+                    <Select pin='brick-brick' label="Статус:" id="status" value={[status.toString()]} onUpdate={(e) => setStatus(e)} placeholder="Статус" 
+                    options={options} disabled={selectActive} />
+                    <TextInput style={{width: '200px'}} value={ATI} id="ATI" type="url" placeholder="ATI код сети перевозчика" onChange={(e) => setATI(e.target.value)}/>
+                    <Button onClick={cliclFunc} type="submit" children={nameButton} />
+                </form>
+        )
+    }
 
     const columns = [
         {width: 200, placeholder: 'Нет номера', id: "numberTicket", name: "Номер заявки", meta: {sort: true}}, 
@@ -111,6 +133,17 @@ export const TicketsPanel = () => {
         {width: 200, placeholder: 'Нет комментария', id: "comment", name: "Комментарии", meta: {sort: true}}, 
         {width: 200, placeholder: 'Нет статуса', id: "status", name: "Статус", meta: {sort: true}}, 
         {width: 200, placeholder: 'Нет ATI', id: "ATI", name: "ATI код сети перевозчика", meta: {sort: true}}];
+
+    const TableUser = (edit: ((item: TableDataItem, index: number) => TableActionConfig<TableDataItem>[]) | undefined) => {
+        return (
+            <div>
+            <Header count={clientsList.length} />
+            <TextInput id="search" type="text" placeholder="Поиск" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Button onClick={() => setComplete(!complete)}>{!complete ? 'Показаны завершенные заявки' : 'Скрыты завершенные заявки'}</Button>
+            <MyTable data={dataTable()} columns={columns} emptyMessage="Нет заявок" getRowActions={edit} />
+        </div>
+        )
+    }
 
     function dataTable() {
         if (search !== '' && complete === true) {
@@ -142,96 +175,22 @@ export const TicketsPanel = () => {
         if (e) {
           return (
             <div>
-                <form action="" style={{display: "flex"}}>
-                    <TextInput style={{width: '200px'}} value={numberTicket}  id="numberTicket" type="number" placeholder="Номер заявки" onChange={(e) => setNumberTicket(e.target.value)} />
-                    <DateField style={{width: '200px'}} value={dateTicket} id="dateTicket" placeholder="Дата и время получения заявки от клиента" format='DD.MM.YYYY HH:m' timeZone="Asia/Yekaterinburg" onUpdate={(e) => setDateTicket(e)} />
-                    <TextInput style={{width: '200px'}} value={nameOrg}  id="nameOrg" type="text" placeholder="Название фирмы клиента" onChange={(e) => setNameOrg(e.target.value)} />
-                    <TextInput style={{width: '200px'}} value={nameClient}  id="nameClient" type="text" placeholder="ФИО перевозчика" onChange={(e) => setNameClient(e.target.value)} />
-                    <TextInput style={{width: '200px'}} value={telephone}  id="telephone" type="tel" placeholder="Контактный телефон перевозчика" onChange={(e) => setTelephone(e.target.value)} />
-                    <TextInput style={{width: '200px'}} value={comment}  id="comment" type="text" placeholder="Комментарии" onChange={(e) => setComment(e.target.value)} />
-                    <Select pin='brick-brick' label="Статус:" id="status" value={[status.toString()]} onUpdate={(e) => setStatus(e)} placeholder="Статус" 
-                    options={[
-                        {value: 'Новая', content: 'Новая'},]} disabled />
-                    <TextInput style={{width: '200px'}} value={ATI} id="ATI" type="url" placeholder="ATI код сети перевозчика" onChange={(e) => setATI(e.target.value)}/>
-                    <Button onClick={createItem} type="submit" children="Добавить" />
-                </form>
-                <Header count={clientsList.length} />
-                <TextInput id="search" type="text" placeholder="Поиск" value={search} onChange={(e) => setSearch(e.target.value)} />
-                <Button onClick={() => setComplete(!complete)}>{!complete ? 'Показаны завершенные заявки' : 'Скрыты завершенные заявки'}</Button>
-                <MyTable data={dataTable()} columns={columns} emptyMessage="Нет заявок" getRowActions={getRowActions} />
+                {formClient(createItem, 'Добавить', selectOptions, true)}
+                {TableUser(getRowActions)}
             </div>
           )
         } return (
             <div>
-                <Header count={clientsList.length} />
-                <TextInput id="search" type="text" placeholder="Поиск" value={search} onChange={(e) => setSearch(e.target.value)} />
-                <Button onClick={() => setComplete(!complete)}>{!complete ? 'Показаны завершенные заявки' : 'Скрыты завершенные заявки'}</Button>
-                <MyTable data={dataTable()} columns={columns} emptyMessage="Нет заявок" />
+                {TableUser(undefined)}
             </div>
         )
-      }
+    }
     return (
             <ThemeProvider theme="dark">
                 <Button onClick={() => setChange(!change)}>{!change ? 'Активен режим пользователя' : 'Активен режим администратора'}</Button>
                 {ChangeButto(change)}
                 <Modal open={openModal} onClose={() => setOpenModal(false)} disableEscapeKeyDown disableOutsideClick>
-                    <form style={{display: 'flex'}}>
-                        <TextInput
-                            style={{width: '200px'}}
-                            value={numberTicket}
-                            onChange={(e) => setNumberTicket(e.target.value)}
-                            placeholder="Номер заявки"
-                        />
-                        <DateField
-                            style={{width: '200px'}}
-                            value={dateTicket}
-                            format='DD.MM.YYYY HH:m' 
-                            timeZone="Asia/Yekaterinburg"
-                            onUpdate={(e) => setDateTicket(e)}
-                        />
-                        <TextInput
-                            style={{width: '200px'}}
-                            value={nameOrg}
-                            onChange={(e) => setNameOrg(e.target.value)}
-                            placeholder="Название фирмы"
-                        />
-                        <TextInput
-                            style={{width: '200px'}}
-                            value={nameClient}
-                            onChange={(e) => setNameClient(e.target.value)}
-                            placeholder="ФИО" 
-                        />
-                        <TextInput
-                            style={{width: '200px'}}
-                            value={telephone}
-                            onChange={(e) => setTelephone(e.target.value)}
-                            placeholder="Контактный телефон"
-                        />
-                        <TextInput
-                            style={{width: '200px'}}
-                            value={comment}
-                            onChange={(e) => setComment(e.target.value)}
-                            placeholder="Комментарии"
-                        />
-                        <Select
-                            value={status}
-                            onUpdate={(e) => setStatus(e)}
-                            options={[
-                                {value: 'В работе', content: 'В работе'},
-                                {value: 'Выполнена', content: 'Выполнена'}]} 
-                        />
-                        <TextInput
-                            style={{width: '200px'}}
-                            value={ATI}
-                            onChange={(e) => setATI(e.target.value)}
-                            placeholder="ATI код сети"
-                        />
-                        <Button
-                            onClick={() => updateItem({numberTicket, dateTicket, nameOrg, nameClient, telephone, comment, status, ATI}, {preventDefault: () => {}})}
-                        >
-                            Сохранить
-                        </Button>
-                    </form>
+                {formClient(updateItem, 'Сохранить', selectOptions.slice(-2), false)}
                 </Modal>
             </ThemeProvider>
     );
