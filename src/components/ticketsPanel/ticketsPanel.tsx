@@ -3,103 +3,92 @@ import { Client } from "../../types";
 import { Header } from "../header/header";
 import { Table, TextInput, Select, Button, Link, withTableActions, withTableSorting, TableDataItem, TableActionConfig, ThemeProvider, Modal } from "@gravity-ui/uikit";
 import { DateField } from '@gravity-ui/date-components';
-import {dateTimeParse} from '@gravity-ui/date-utils';
+import { dateTimeParse } from '@gravity-ui/date-utils';
 import '@gravity-ui/uikit/styles/fonts.css';
 import '@gravity-ui/uikit/styles/styles.css';
 
 export const TicketsPanel = () => {
     const [change, setChange] = React.useState(false);
-    const [clientsList, setclientsList] = React.useState<Client[]>([]);
-    const [value, setValue] = React.useState('');
-    const [value1, setValue1] = React.useState('');
-    const [value2, setValue2] = React.useState('');
-    const [value3, setValue3] = React.useState('');
-    const [value4, setValue4] = React.useState('');
-    const [value5, setValue5] = React.useState('');
-    const [value6, setValue6] = React.useState(['Новая']);
-    const [value7, setValue7] = React.useState(dateTimeParse('') || null);
-    const [search, setSearch] = React.useState('');
-    const [openModal, setOpenModal] = React.useState(false);
-
-    const [itemID, setItemID] = React.useState(0);
+    const [clientsList, setClientsList] = React.useState<Client[]>([]);
     const [numberTicket, setNumberTicket] = React.useState('');
-    const [dateTicket, setDateTicket] = React.useState('');
     const [nameOrg, setNameOrg] = React.useState('');
     const [nameClient, setNameClient] = React.useState('');
     const [telephone, setTelephone] = React.useState('');
     const [comment, setComment] = React.useState('');
-    const [status, setStatus] = React.useState(['']);
     const [ATI, setATI] = React.useState('');
+    const [status, setStatus] = React.useState(['Новая']);
+    const [dateTicket, setDateTicket] = React.useState(dateTimeParse ('') || null);
+    const [search, setSearch] = React.useState('');
+    const [openModal, setOpenModal] = React.useState(false);
+    const [itemID, setItemID] = React.useState(0);
+    const [complete, setComplete] = React.useState(false);
 
     const MyTable = withTableActions(withTableSorting(Table));
     const createItem = (e: { preventDefault: () => void; }) => {
-        const numberTicket = value;
-        const dateTicket = value7?.timeZone('Asia/Yekaterinburg').format('DD.MM.YYYY HH:MM').toString() || '';
-        const nameOrg = value1;
-        const nameClient = value2;
-        const telephone = value3;
-        const comment = value4;
-        const status = value6;
-        const ATI = <Link href={"https://ati.su/firms/" + value5 + "/info"}>{value5}</Link>;
         const newClient = {
             id: Date.now(),
+            numberTicket: numberTicket,
+            dateTicket: dateTicket?.timeZone('Asia/Yekaterinburg').format('DD.MM.YYYY HH:m').toString() || '',
+            nameOrg: nameOrg,
+            nameClient: nameClient,
+            telephone: telephone,
+            comment: comment,
+            status: status,
+            ATI: <Link href={"https://ati.su/firms/" + ATI + "/info"}>{ATI}</Link>,
+        }
+        e.preventDefault();
+        setClientsList([...clientsList, newClient]);
+        setNumberTicket('');
+        setNameOrg('');
+        setNameClient('');
+        setTelephone('');
+        setComment('');
+        setATI('');
+        setStatus(['Новая']);
+        setDateTicket(dateTimeParse ('') || null);
+    }
+
+    function updateItem(item: TableDataItem, e: { preventDefault: () => void; }) {
+        const updatedItem = {
+            id: itemID,
             numberTicket,
-            dateTicket,
+            dateTicket: dateTicket?.timeZone('Asia/Yekaterinburg').format('DD.MM.YYYY HH:m').toString() || '',
             nameOrg,
             nameClient,
             telephone,
             comment,
             status,
-            ATI
+            ATI: <Link href={"https://ati.su/firms/" + ATI + "/info"}>{ATI}</Link>,
         }
         e.preventDefault();
-        setclientsList([...clientsList, newClient]);
-        console.log();
-        setValue('');
-        setValue1('');
-        setValue2('');
-        setValue3('');
-        setValue4('');
-        setValue5('');
-        setValue6(['Новая']);
-        setValue7(null);
+        setOpenModal(false)
+        setNumberTicket('');
+        setNameOrg('');
+        setNameClient('');
+        setTelephone('');
+        setComment('');
+        setATI('');
+        setStatus(['Новая']);
+        setDateTicket(dateTimeParse ('') || null);
+        setClientsList(clientsList.map((client) => itemID === client.id ? updatedItem : client));
     }
-
-function updateItem(item: TableDataItem, e: { preventDefault: () => void; }) {
-    
-    const updatedItem = {
-        id: itemID,
-        numberTicket,
-        dateTicket,
-        nameOrg,
-        nameClient,
-        telephone,
-        comment,
-        status,
-        ATI: <Link href={"https://ati.su/firms/" + ATI + "/info"}>{ATI}</Link>,
-    }
-    e.preventDefault();
-    setOpenModal(false)
-    setclientsList(clientsList.map((client) => itemID === client.id ? updatedItem : client));
-}
 
     const getRowActions = (item: TableDataItem): TableActionConfig<TableDataItem>[] => {
         return [
           {
             text: 'Удалить',
             handler: (item: TableDataItem) => {
-              setclientsList(clientsList.filter((client) => client.id !== item.id));
+              setClientsList(clientsList.filter((client) => client.id !== item.id));
             },
             theme: 'danger',
           },
           {
             text: 'Редактировать',
             handler: (item: TableDataItem) => {
-              console.log(item);
               setOpenModal(true);
               setItemID(item.id);
               setNumberTicket(item.numberTicket);
-              setDateTicket(item.dateTicket);
+              setDateTicket(dateTimeParse(item.dateTicket || '') || null);
               setNameOrg(item.nameOrg);
               setNameClient(item.nameClient);
               setTelephone(item.telephone);
@@ -123,85 +112,103 @@ function updateItem(item: TableDataItem, e: { preventDefault: () => void; }) {
         {width: 200, placeholder: 'Нет статуса', id: "status", name: "Статус", meta: {sort: true}}, 
         {width: 200, placeholder: 'Нет ATI', id: "ATI", name: "ATI код сети перевозчика", meta: {sort: true}}];
 
-    function SearchTable() {
-        if (search === '') {
-            return clientsList;
+    function dataTable() {
+        if (search !== '' && complete === true) {
+            return clientsList.filter((client) => 
+                client.numberTicket.toString().includes(search.toLowerCase())  || 
+                client.nameOrg.toLowerCase().includes(search.toLowerCase()) || 
+                client.nameClient.toLowerCase().includes(search.toLowerCase()) || 
+                client.comment.toLowerCase().includes(search.toLowerCase()) || 
+                client.ATI.props.children.toString().toLowerCase().includes(search.toLowerCase()) || 
+                client.status.toString().toLowerCase().includes(search.toLowerCase()) ||
+                client.telephone.toString().toLowerCase().includes(search.toLowerCase()) ||
+                client.dateTicket.toString().toLowerCase().includes(search.toLowerCase())).filter((client) => client.status.toString() !== 'Выполнена')
+        } if (search !== '' && complete === false) {
+            return clientsList.filter((client) => 
+                client.numberTicket.toString().includes(search.toLowerCase())  || 
+                client.nameOrg.toLowerCase().includes(search.toLowerCase()) || 
+                client.nameClient.toLowerCase().includes(search.toLowerCase()) || 
+                client.comment.toLowerCase().includes(search.toLowerCase()) || 
+                client.ATI.props.children.toString().toLowerCase().includes(search.toLowerCase()) || 
+                client.status.toString().toLowerCase().includes(search.toLowerCase()) ||
+                client.telephone.toString().toLowerCase().includes(search.toLowerCase()) ||
+                client.dateTicket.toString().toLowerCase().includes(search.toLowerCase())).filter((client) => client.status.toString() !== 'Выполнена')
+        } if (search === '' && complete === true) {
+            return clientsList.filter((client) => client.status.toString() !== 'Выполнена')
         }
-        return clientsList.filter((client) => 
-            client.numberTicket.toString().includes(search.toLowerCase())  || 
-            client.nameOrg.toLowerCase().includes(search.toLowerCase()) || 
-            client.nameClient.toLowerCase().includes(search.toLowerCase()) || 
-            client.comment.toLowerCase().includes(search.toLowerCase()) || 
-            client.ATI.props.children.toString().toLowerCase().includes(search.toLowerCase()) || 
-            client.status.toString().toLowerCase().includes(search.toLowerCase()) ||
-            client.telephone.toString().toLowerCase().includes(search.toLowerCase()) ||
-            client.dateTicket.toString().toLowerCase().includes(search.toLowerCase()));
+        return clientsList;
     }
     function ChangeButto(e: boolean) {
         if (e) {
           return (
             <div>
                 <form action="" style={{display: "flex"}}>
-                    <TextInput style={{width: '200px'}} value={value}  id="numberTicket" type="number" placeholder="Номер заявки" onChange={(e) => setValue(e.target.value)} />
-                    <DateField style={{width: '200px'}} value={value7} id="dateTicket" placeholder="Дата и время получения заявки от клиента" format='DD.MM.YYYY HH:MM' timeZone="Asia/Yekaterinburg" onUpdate={(e) => setValue7(e)} />
-                    <TextInput style={{width: '200px'}} value={value1}  id="nameOrg" type="text" placeholder="Название фирмы клиента" onChange={(e) => setValue1(e.target.value)} />
-                    <TextInput style={{width: '200px'}} value={value2}  id="nameClient" type="text" placeholder="ФИО перевозчика" onChange={(e) => setValue2(e.target.value)} />
-                    <TextInput style={{width: '200px'}} value={value3}  id="telephone" type="tel" placeholder="Контактный телефон перевозчика" onChange={(e) => setValue3(e.target.value)} />
-                    <TextInput style={{width: '200px'}} value={value4}  id="comment" type="text" placeholder="Комментарии" onChange={(e) => setValue4(e.target.value)} />
-                    <Select pin='brick-brick' label="Статус:" id="status" value={[value6.toString()]} onUpdate={(e) => setValue6(e)} placeholder="Статус" 
+                    <TextInput style={{width: '200px'}} value={numberTicket}  id="numberTicket" type="number" placeholder="Номер заявки" onChange={(e) => setNumberTicket(e.target.value)} />
+                    <DateField style={{width: '200px'}} value={dateTicket} id="dateTicket" placeholder="Дата и время получения заявки от клиента" format='DD.MM.YYYY HH:m' timeZone="Asia/Yekaterinburg" onUpdate={(e) => setDateTicket(e)} />
+                    <TextInput style={{width: '200px'}} value={nameOrg}  id="nameOrg" type="text" placeholder="Название фирмы клиента" onChange={(e) => setNameOrg(e.target.value)} />
+                    <TextInput style={{width: '200px'}} value={nameClient}  id="nameClient" type="text" placeholder="ФИО перевозчика" onChange={(e) => setNameClient(e.target.value)} />
+                    <TextInput style={{width: '200px'}} value={telephone}  id="telephone" type="tel" placeholder="Контактный телефон перевозчика" onChange={(e) => setTelephone(e.target.value)} />
+                    <TextInput style={{width: '200px'}} value={comment}  id="comment" type="text" placeholder="Комментарии" onChange={(e) => setComment(e.target.value)} />
+                    <Select pin='brick-brick' label="Статус:" id="status" value={[status.toString()]} onUpdate={(e) => setStatus(e)} placeholder="Статус" 
                     options={[
-                        {value: 'Новая', content: 'Новая'},
-                        {value: 'В работе', content: 'В работе'},
-                        {value: 'Выполнена', content: 'Выполнена'}]} disabled />
-                    <TextInput style={{width: '200px'}} value={value5} id="ATI" type="url" placeholder="ATI код сети перевозчика" onChange={(e) => setValue5(e.target.value)}/>
+                        {value: 'Новая', content: 'Новая'},]} disabled />
+                    <TextInput style={{width: '200px'}} value={ATI} id="ATI" type="url" placeholder="ATI код сети перевозчика" onChange={(e) => setATI(e.target.value)}/>
                     <Button onClick={createItem} type="submit" children="Добавить" />
                 </form>
                 <Header count={clientsList.length} />
                 <TextInput id="search" type="text" placeholder="Поиск" value={search} onChange={(e) => setSearch(e.target.value)} />
-                <MyTable data={SearchTable()} columns={columns} emptyMessage="Нет заявок" getRowActions={getRowActions} />
+                <Button onClick={() => setComplete(!complete)}>{!complete ? 'Показаны завершенные заявки' : 'Скрыты завершенные заявки'}</Button>
+                <MyTable data={dataTable()} columns={columns} emptyMessage="Нет заявок" getRowActions={getRowActions} />
             </div>
           )
         } return (
             <div>
                 <Header count={clientsList.length} />
                 <TextInput id="search" type="text" placeholder="Поиск" value={search} onChange={(e) => setSearch(e.target.value)} />
-                <MyTable data={SearchTable()} columns={columns} emptyMessage="Нет заявок" />
+                <Button onClick={() => setComplete(!complete)}>{!complete ? 'Показаны завершенные заявки' : 'Скрыты завершенные заявки'}</Button>
+                <MyTable data={dataTable()} columns={columns} emptyMessage="Нет заявок" />
             </div>
         )
       }
     return (
             <ThemeProvider theme="dark">
-                <Button onClick={() => setChange(!change)}>{!change ? 'Админ' : 'Обычный'}</Button>
+                <Button onClick={() => setChange(!change)}>{!change ? 'Активен режим пользователя' : 'Активен режим администратора'}</Button>
                 {ChangeButto(change)}
-                <Modal open={openModal} onClose={() => setOpenModal(false)}>
-                    <form style={{display: 'flex', flexDirection: 'column'}}>
+                <Modal open={openModal} onClose={() => setOpenModal(false)} disableEscapeKeyDown disableOutsideClick>
+                    <form style={{display: 'flex'}}>
                         <TextInput
+                            style={{width: '200px'}}
                             value={numberTicket}
                             onChange={(e) => setNumberTicket(e.target.value)}
                             placeholder="Номер заявки"
                         />
                         <DateField
-                            value={dateTimeParse(dateTicket)}
-                            format='DD.MM.YYYY HH:MM' 
+                            style={{width: '200px'}}
+                            value={dateTicket}
+                            format='DD.MM.YYYY HH:m' 
                             timeZone="Asia/Yekaterinburg"
-                            onUpdate={(e) => setDateTicket(e?.toString() || '')}
+                            onUpdate={(e) => setDateTicket(e)}
                         />
                         <TextInput
+                            style={{width: '200px'}}
                             value={nameOrg}
                             onChange={(e) => setNameOrg(e.target.value)}
                             placeholder="Название фирмы"
                         />
                         <TextInput
+                            style={{width: '200px'}}
                             value={nameClient}
                             onChange={(e) => setNameClient(e.target.value)}
                             placeholder="ФИО" 
                         />
                         <TextInput
+                            style={{width: '200px'}}
                             value={telephone}
                             onChange={(e) => setTelephone(e.target.value)}
                             placeholder="Контактный телефон"
                         />
                         <TextInput
+                            style={{width: '200px'}}
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                             placeholder="Комментарии"
@@ -214,6 +221,7 @@ function updateItem(item: TableDataItem, e: { preventDefault: () => void; }) {
                                 {value: 'Выполнена', content: 'Выполнена'}]} 
                         />
                         <TextInput
+                            style={{width: '200px'}}
                             value={ATI}
                             onChange={(e) => setATI(e.target.value)}
                             placeholder="ATI код сети"
