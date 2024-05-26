@@ -1,11 +1,12 @@
 import React, { MouseEventHandler } from "react";
 import { Client } from "../../types";
 import { Header } from "../header/header";
-import { Table, TextInput, Select, Button, Link, withTableActions, withTableSorting, TableDataItem, TableActionConfig, ThemeProvider, Modal, SelectOption, SelectOptionGroup } from "@gravity-ui/uikit";
+import { TextInput, Select, Button, Link, TableDataItem, TableActionConfig, ThemeProvider, Modal, SelectOption, SelectOptionGroup } from "@gravity-ui/uikit";
 import { DateField } from '@gravity-ui/date-components';
 import { dateTimeParse } from '@gravity-ui/date-utils';
 import '@gravity-ui/uikit/styles/fonts.css';
 import '@gravity-ui/uikit/styles/styles.css';
+import { TableTickets } from "./table";
 
 export const TicketsPanel = () => {
     const [change, setChange] = React.useState(false);
@@ -23,7 +24,6 @@ export const TicketsPanel = () => {
     const [itemID, setItemID] = React.useState(0);
     const [complete, setComplete] = React.useState(false);
 
-    const MyTable = withTableActions(withTableSorting(Table));
     const createItem = (e: { preventDefault: () => void; }) => {
         const newClient = {
             id: Date.now(),
@@ -124,16 +124,6 @@ export const TicketsPanel = () => {
         )
     }
 
-    const columns = [
-        {width: 200, placeholder: 'Нет номера', id: "numberTicket", name: "Номер заявки", meta: {sort: true}}, 
-        {width: 200, placeholder: 'Нет даты', id: "dateTicket", name: "Дата и время получения заявки от клиента", meta: {sort: true}}, 
-        {width: 200, placeholder: 'Нет названия', id: "nameOrg", name: 'Название фирмы заказчика', meta: {sort: true}}, 
-        {width: 200, placeholder: 'Нет ФИО', id: "nameClient", name: "ФИО перевозчика", meta: {sort: true}}, 
-        {width: 200, placeholder: 'Нет телефона', id: "telephone", name: "Контактный телефон перевозчика", meta: {sort: true}}, 
-        {width: 200, placeholder: 'Нет комментария', id: "comment", name: "Комментарии", meta: {sort: true}}, 
-        {width: 200, placeholder: 'Нет статуса', id: "status", name: "Статус", meta: {sort: true}}, 
-        {width: 200, placeholder: 'Нет ATI', id: "ATI", name: "ATI код сети перевозчика", meta: {sort: true}}];
-
         
     function dataTable() {
         if (search !== '' && complete === true) {
@@ -154,37 +144,39 @@ export const TicketsPanel = () => {
                 client.comment.toLowerCase().includes(search.toLowerCase()) || 
                 client.ATI.props.children.toString().toLowerCase().includes(search.toLowerCase()) || 
                 client.status.toString().toLowerCase().includes(search.toLowerCase()) ||
-                client.telephone.toString().toLowerCase().includes(search.toLowerCase()) ||
-                client.dateTicket.toString().toLowerCase().includes(search.toLowerCase())).filter((client) => client.status.toString() !== 'Завершенна')
+                client.telephone.toString().toLowerCase().includes(search.toLowerCase()))
         } if (search === '' && complete === true) {
             return clientsList.filter((client) => client.status.toString() !== 'Завершенна')
         }
         return clientsList;
     }
-    const TableUser = (edit: ((item: TableDataItem, index: number) => TableActionConfig<TableDataItem>[]) | undefined) => {
+
+    const TableUser = () => {
         return (
             <div>
-                <Header count={clientsList.length} />
                 <TextInput id="search" type="text" placeholder="Поиск" value={search} onChange={(e) => setSearch(e.target.value)} />
                 <Button onClick={() => setComplete(!complete)}>{!complete ? 'Показаны завершенные заявки' : 'Скрыты завершенные заявки'}</Button>
-                <MyTable data={dataTable()} columns={columns} emptyMessage="Нет заявок" getRowActions={edit} />
             </div>
         )
     }
+
     function ChangeButto(e: boolean) {
         if (e) {
           return (
             <div>
                 {formClient(createItem, 'Добавить', selectOptions, true)}
-                {TableUser(getRowActions)}
+                {TableUser()}
+                {TableTickets(dataTable(), clientsList, getRowActions)}
             </div>
           )
         } return (
             <div>
-                {TableUser(undefined)}
+                {TableUser()}
+                {TableTickets(dataTable(), clientsList, undefined)}
             </div>
         )
     }
+    
     return (
             <ThemeProvider theme="dark">
                 <Button onClick={() => setChange(!change)}>{!change ? 'Активен режим пользователя' : 'Активен режим администратора'}</Button>
