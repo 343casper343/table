@@ -113,7 +113,7 @@ export const TicketsPanel = () => {
               setTelephone(item.telephone);
               setComment(item.comment);
               setStatus(item.status);
-              setATI(item.ATI.props.children.toString());
+              setATI(ATIString(item.ATI));
             },
             theme: 'danger',
           }
