@@ -120,7 +120,7 @@ export const TicketsPanel = () => {
                     options={options} disabled={selectActive} />
                     <TextInput style={{width: '200px'}} value={ATI} id="ATI" type="url" placeholder="ATI код сети перевозчика" onChange={(e) => setATI(e.target.value)}/>
                     <Button onClick={cliclFunc} type="submit" children={nameButton} />
-                </form>
+            </form>
         )
     }
 
@@ -134,17 +134,7 @@ export const TicketsPanel = () => {
         {width: 200, placeholder: 'Нет статуса', id: "status", name: "Статус", meta: {sort: true}}, 
         {width: 200, placeholder: 'Нет ATI', id: "ATI", name: "ATI код сети перевозчика", meta: {sort: true}}];
 
-    const TableUser = (edit: ((item: TableDataItem, index: number) => TableActionConfig<TableDataItem>[]) | undefined) => {
-        return (
-            <div>
-            <Header count={clientsList.length} />
-            <TextInput id="search" type="text" placeholder="Поиск" value={search} onChange={(e) => setSearch(e.target.value)} />
-            <Button onClick={() => setComplete(!complete)}>{!complete ? 'Показаны завершенные заявки' : 'Скрыты завершенные заявки'}</Button>
-            <MyTable data={dataTable()} columns={columns} emptyMessage="Нет заявок" getRowActions={edit} />
-        </div>
-        )
-    }
-
+        
     function dataTable() {
         if (search !== '' && complete === true) {
             return clientsList.filter((client) => 
@@ -155,8 +145,8 @@ export const TicketsPanel = () => {
                 client.ATI.props.children.toString().toLowerCase().includes(search.toLowerCase()) || 
                 client.status.toString().toLowerCase().includes(search.toLowerCase()) ||
                 client.telephone.toString().toLowerCase().includes(search.toLowerCase()) ||
-                client.dateTicket.toString().toLowerCase().includes(search.toLowerCase())).filter((client) => client.status.toString() !== 'Выполнена')
-        } if (search !== '' && complete === false) {
+                client.dateTicket.toString().toLowerCase().includes(search.toLowerCase())).filter((client) => client.status.toString() !== 'Завершенна')
+            } if (search !== '' && complete === false) {
             return clientsList.filter((client) => 
                 client.numberTicket.toString().includes(search.toLowerCase())  || 
                 client.nameOrg.toLowerCase().includes(search.toLowerCase()) || 
@@ -165,11 +155,21 @@ export const TicketsPanel = () => {
                 client.ATI.props.children.toString().toLowerCase().includes(search.toLowerCase()) || 
                 client.status.toString().toLowerCase().includes(search.toLowerCase()) ||
                 client.telephone.toString().toLowerCase().includes(search.toLowerCase()) ||
-                client.dateTicket.toString().toLowerCase().includes(search.toLowerCase())).filter((client) => client.status.toString() !== 'Выполнена')
+                client.dateTicket.toString().toLowerCase().includes(search.toLowerCase())).filter((client) => client.status.toString() !== 'Завершенна')
         } if (search === '' && complete === true) {
-            return clientsList.filter((client) => client.status.toString() !== 'Выполнена')
+            return clientsList.filter((client) => client.status.toString() !== 'Завершенна')
         }
         return clientsList;
+    }
+    const TableUser = (edit: ((item: TableDataItem, index: number) => TableActionConfig<TableDataItem>[]) | undefined) => {
+        return (
+            <div>
+                <Header count={clientsList.length} />
+                <TextInput id="search" type="text" placeholder="Поиск" value={search} onChange={(e) => setSearch(e.target.value)} />
+                <Button onClick={() => setComplete(!complete)}>{!complete ? 'Показаны завершенные заявки' : 'Скрыты завершенные заявки'}</Button>
+                <MyTable data={dataTable()} columns={columns} emptyMessage="Нет заявок" getRowActions={edit} />
+            </div>
+        )
     }
     function ChangeButto(e: boolean) {
         if (e) {
