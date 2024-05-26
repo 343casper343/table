@@ -1,6 +1,5 @@
 import React, { MouseEventHandler } from "react";
 import { Client } from "../../types";
-import { Header } from "../header/header";
 import { TextInput, Select, Button, Link, TableDataItem, TableActionConfig, ThemeProvider, Modal, SelectOption, SelectOptionGroup } from "@gravity-ui/uikit";
 import { DateField } from '@gravity-ui/date-components';
 import { dateTimeParse } from '@gravity-ui/date-utils';
@@ -24,6 +23,24 @@ export const TicketsPanel = () => {
     const [itemID, setItemID] = React.useState(0);
     const [complete, setComplete] = React.useState(false);
 
+    function ATItrans () {
+        if (ATI === '') {
+            return '';
+        }
+        else {
+            return <Link href={"https://ati.su/firms/" + ATI + "/info"}>{ATI}</Link>;
+        }
+    }
+
+    function ATIString (el: string | JSX.Element): string {
+        if (typeof el === 'string') {
+            return el;
+        }
+        else {
+            return el.props.children.toString();
+        }
+    }
+
     const createItem = (e: { preventDefault: () => void; }) => {
         const newClient = {
             id: Date.now(),
@@ -34,8 +51,9 @@ export const TicketsPanel = () => {
             telephone: telephone,
             comment: comment,
             status: status,
-            ATI: <Link href={"https://ati.su/firms/" + ATI + "/info"}>{ATI}</Link>,
+            ATI: ATItrans(),
         }
+        console.log(ATIString(newClient.ATI));
         e.preventDefault();
         setClientsList([...clientsList, newClient]);
         setNumberTicket('');
@@ -49,6 +67,7 @@ export const TicketsPanel = () => {
     }
 
     const updateItem = (e: { preventDefault: () => void; }) => {
+        
         const updatedItem = {
             id: itemID,
             numberTicket,
@@ -58,7 +77,7 @@ export const TicketsPanel = () => {
             telephone,
             comment,
             status,
-            ATI: <Link href={"https://ati.su/firms/" + ATI + "/info"}>{ATI}</Link>,
+            ATI: ATItrans(),
         }
         e.preventDefault();
         setOpenModal(false)
@@ -132,23 +151,22 @@ export const TicketsPanel = () => {
                 client.nameOrg.toLowerCase().includes(search.toLowerCase()) || 
                 client.nameClient.toLowerCase().includes(search.toLowerCase()) || 
                 client.comment.toLowerCase().includes(search.toLowerCase()) || 
-                client.ATI.props.children.toString().toLowerCase().includes(search.toLowerCase()) || 
+                ATIString(client.ATI).toLowerCase().includes(search.toLowerCase()) || 
                 client.status.toString().toLowerCase().includes(search.toLowerCase()) ||
                 client.telephone.toString().toLowerCase().includes(search.toLowerCase()) ||
                 client.dateTicket.toString().toLowerCase().includes(search.toLowerCase())).filter((client) => client.status.toString() !== 'Завершенна')
             } if (search !== '' && complete === false) {
-            return clientsList.filter((client) => 
-                client.numberTicket.toString().includes(search.toLowerCase())  || 
-                client.nameOrg.toLowerCase().includes(search.toLowerCase()) || 
-                client.nameClient.toLowerCase().includes(search.toLowerCase()) || 
-                client.comment.toLowerCase().includes(search.toLowerCase()) || 
-                client.ATI.props.children.toString().toLowerCase().includes(search.toLowerCase()) || 
-                client.status.toString().toLowerCase().includes(search.toLowerCase()) ||
-                client.telephone.toString().toLowerCase().includes(search.toLowerCase()))
-        } if (search === '' && complete === true) {
-            return clientsList.filter((client) => client.status.toString() !== 'Завершенна')
-        }
-        return clientsList;
+                return clientsList.filter((client) => 
+                    client.numberTicket.toString().includes(search.toLowerCase())  || 
+                    client.nameOrg.toLowerCase().includes(search.toLowerCase()) || 
+                    client.nameClient.toLowerCase().includes(search.toLowerCase()) || 
+                    client.comment.toLowerCase().includes(search.toLowerCase()) || 
+                    ATIString(client.ATI).toString().toLowerCase().includes(search.toLowerCase()) || 
+                    client.status.toString().toLowerCase().includes(search.toLowerCase()) ||
+                    client.telephone.toString().toLowerCase().includes(search.toLowerCase()))
+            } if (search === '' && complete === true) {
+                return clientsList.filter((client) => client.status.toString() !== 'Завершенна')
+            } return clientsList;
     }
 
     const TableUser = () => {
@@ -176,7 +194,7 @@ export const TicketsPanel = () => {
             </div>
         )
     }
-    
+
     return (
             <ThemeProvider theme="dark">
                 <Button onClick={() => setChange(!change)}>{!change ? 'Активен режим пользователя' : 'Активен режим администратора'}</Button>
