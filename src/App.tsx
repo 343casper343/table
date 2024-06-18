@@ -1,4 +1,4 @@
-import React, { MouseEventHandler } from "react";
+import React, { MouseEventHandler, useEffect } from "react";
 import { Client } from "./types/types";
 import { TextInput, Select, Button, Link, TableDataItem, TableActionConfig, ThemeProvider, Modal, SelectOption, SelectOptionGroup } from "@gravity-ui/uikit";
 import { DateField } from '@gravity-ui/date-components';
@@ -9,7 +9,7 @@ import { TableTickets } from "./modules/table";
 
 function TicketsPanel() {
   const [change, setChange] = React.useState(false);
-  const [clientsList, setClientsList] = React.useState<Client[]>([]);
+  const [clientsList, setClientsList] = React.useState<Client[]>(getLS());
   const [numberTicket, setNumberTicket] = React.useState('');
   const [nameOrg, setNameOrg] = React.useState('');
   const [nameClient, setNameClient] = React.useState('');
@@ -31,7 +31,28 @@ function TicketsPanel() {
   const [validComment, setValidComment] = React.useState<"invalid" | undefined>(undefined);
   const [validATI, setValidATI] = React.useState<"invalid" | undefined>(undefined);
 
-  function ATItrans() {
+function getLS() {
+  const clientsListString = localStorage.getItem('clientsList');
+  if (clientsListString !== null) {
+    const clientsList = JSON.parse(clientsListString);
+    return clientsList.map((client: Client) => {
+      return {
+        id: client.id,
+        numberTicket: client.numberTicket,
+        dateTicket: client.dateTicket,
+        nameOrg: client.nameOrg,
+        nameClient: client.nameClient,
+        telephone: client.telephone,
+        comment: client.comment,
+        status: client.status,
+        ATI: ATItrans(client.ATI.toString()),
+      };
+    });
+  }
+  return [];
+}
+
+  function ATItrans(ATI: string) {
     return <Link href={"https://ati.su/firms/" + ATI + "/info"}>{ATI}</Link>;
   }
 
@@ -69,7 +90,7 @@ function TicketsPanel() {
       telephone,
       comment,
       status,
-      ATI: ATItrans(),
+      ATI: ATItrans(ATI),
     }
     if (numberTicket === '' || dateTicket === null || nameOrg === '' || nameClient === '' || telephone === '' || comment === '' || ATI === '') {
       e.preventDefault();
@@ -89,14 +110,6 @@ function TicketsPanel() {
   }
 
   const updateItem = (e: { preventDefault: () => void; }) => {
-    setValidNubmer(undefined);
-    setValidDate(undefined);
-    setValidNameOrg(undefined);
-    setValidNameClient(undefined);
-    setValidTelephone(undefined);
-    setValidComment(undefined);
-    setValidATI(undefined);
-
     const updatedItem = {
       id: itemID,
       numberTicket,
@@ -106,7 +119,7 @@ function TicketsPanel() {
       telephone,
       comment,
       status,
-      ATI: ATItrans(),
+      ATI: ATItrans(ATI),
     }
     if (numberTicket === '' || dateTicket === null || nameOrg === '' || nameClient === '' || telephone === '' || comment === '' || ATI === '') {
       e.preventDefault();
@@ -130,9 +143,11 @@ function TicketsPanel() {
   const deleteItem = () => {
     return (
       <Modal open={deleteModal} onClose={() => setDeleteModal(false)}>
-        <div>Вы действительно хотите удалить?</div>
-        <Button onClick={() => setDeleteModal(false)}>Нет</Button>
-        <Button onClick={() => confirmDeleteItem()}>Да</Button>
+        <div style={{textAlign: 'center', padding: '10px'}}>Вы действительно хотите удалить?</div>
+        <div style={{textAlign: 'center', padding: '10px', display: 'flex', justifyContent: 'space-between'}}>
+          <Button style={{textAlign: 'center'}} onClick={() => setDeleteModal(false)}>Нет</Button>
+          <Button style={{textAlign: 'center'}} onClick={() => confirmDeleteItem()}>Да</Button>
+        </div>
       </Modal>
     )
   }
@@ -254,6 +269,24 @@ function TicketsPanel() {
     )
   }
 
+  useEffect(() => {
+    const data = clientsList.map((client) => {
+      return {
+        id: client.id,
+        numberTicket: client.numberTicket,
+        dateTicket: client.dateTicket,
+        nameOrg: client.nameOrg,
+        nameClient: client.nameClient,
+        telephone: client.telephone,
+        comment: client.comment,
+        status: client.status,
+        ATI: ATIString(client.ATI),
+      }
+    })
+    if (data) {
+      localStorage.setItem('clientsList', JSON.stringify(data))
+    }
+    }, [clientsList]);
   return (
     <ThemeProvider theme="dark">
       <Button onClick={() => setChange(!change)} children={!change ? 'Активен режим пользователя' : 'Активен режим администратора'} type='button' />
